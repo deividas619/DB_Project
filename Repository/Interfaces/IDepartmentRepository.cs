@@ -12,7 +12,7 @@ namespace Project.Repository.Interfaces
         public void CreateDepartment(Department department);
         public List<Department> GetAllDepartments();
         public Department GetDepartmentByName(string Name);
-        public void UpdateDepartment(string Name, List<Lecture> lectures);
+        public void UpdateDepartment(string oldName, string newName, List<Lecture> lectures);
         public void DeleteDepartmentByName(string Name);
         public void DeleteAllDepartments();
         public IEnumerable<Student> GetStudentsInDepartment(string DepartmentName);

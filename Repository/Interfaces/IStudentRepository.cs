@@ -12,7 +12,7 @@ namespace Project.Repository.Interfaces
         public void CreateStudent(Student student);
         public List<Student> GetAllStudents();
         public Student GetStudentByName(string Name);
-        public void UpdateStudent(string Name, Department department);
+        public void UpdateStudent(string oldName, string newName, Department department);
         public void DeleteStudentByName(string Name);
         public void DeleteAllStudents();
         public IEnumerable<Lecture> DisplayLecturesForStudent(string Name);

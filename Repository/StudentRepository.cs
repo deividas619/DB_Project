@@ -17,7 +17,7 @@ namespace Project.Repository
         private readonly Context _context;
         public StudentRepository(Context context)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context)); ;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         public void CreateStudent(Student student)
         {
@@ -32,12 +32,12 @@ namespace Project.Repository
         {
             return _context.Students.FirstOrDefault(s => s.Name == Name);
         }
-        public void UpdateStudent(string Name, Department department)
+        public void UpdateStudent(string oldName, string newName, Department department)
         {
-            var student = _context.Students.Include(s => s.Department).FirstOrDefault(s => s.Name == Name);
+            var student = _context.Students.Include(s => s.Department).FirstOrDefault(s => s.Name == oldName);
             if (student != null)
             {
-                student.Name = Name;
+                student.Name = newName;
 
                 if (department != null)
                 {

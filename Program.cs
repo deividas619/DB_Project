@@ -153,9 +153,16 @@ namespace Project
                         continue;
                     case 2:
                         Console.Clear();
-                        foreach (var student in studentRepository.GetAllStudents())
+                        if (studentRepository.GetAllStudents().Count > 0)
                         {
-                            Console.WriteLine($"({student.Id}) {student.Name}");
+                            foreach (var student in studentRepository.GetAllStudents())
+                            {
+                                Console.WriteLine($"({student.Id}) {student.Name}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("No students were found!");
                         }
                         ReturnToMainMenu();
                         continue;
@@ -173,14 +180,22 @@ namespace Project
 
                         Console.WriteLine("Do you want to change department? (y/N)");
                         var departmentSelection = Console.ReadLine();
+                        List<string> departmentList = new List<string>();
+                        int newDepartment = 0;
 
                         if (departmentSelection == "y" || departmentSelection == "Y")
                         {
                             Console.WriteLine("Select new department:");
-                            List<string> departmentList = departmentRepository.GetAllDepartments().Select(d => d.Name).ToList();
-                            var newDepartment = MenuInteraction(departmentList);
-                            studentRepository.UpdateStudent(updatedStudentName, departmentRepository.GetDepartmentByName(departmentList[newDepartment]));
+                            departmentList = departmentRepository.GetAllDepartments().Where(d => d.Name != studentRepository.GetStudentByName(students[studentToEditIndex]).Department.Name).Select(d => d.Name).ToList();
+                            newDepartment = MenuInteraction(departmentList);
                         }
+
+                        Department someDepartment = null;
+                        if (departmentList.Count > 0)
+                        {
+                            someDepartment = departmentRepository.GetDepartmentByName(departmentList[newDepartment]);
+                        }
+                        studentRepository.UpdateStudent(students[studentToEditIndex], updatedStudentName, someDepartment);
                         continue;
                     case 4:
                         List<string> studentNames = studentRepository.GetAllStudents().Select(s => s.Name).ToList();
@@ -193,7 +208,13 @@ namespace Project
                     case 6:
                         List<string> studentNamesAgain = studentRepository.GetAllStudents().Select(s => s.Name).ToList();
                         var studentToLookFor = MenuInteraction(studentNamesAgain);
-                        studentRepository.DisplayLecturesForStudent(studentNamesAgain[studentToLookFor]);
+                        Console.Clear();
+                        Console.WriteLine($"Lectures for {studentNamesAgain[studentToLookFor]}:\n");
+                        foreach (var lecture in studentRepository.DisplayLecturesForStudent(studentNamesAgain[studentToLookFor]))
+                        {
+                            Console.WriteLine($"{lecture.Name}");
+                        }
+                        ReturnToMainMenu();
                         continue;
                 }
             }
@@ -226,25 +247,28 @@ namespace Project
                         if (amount > 0)
                         {
                             List<string> students = studentRepository.GetAllStudents().Select(l => l.Name).ToList();
-                            for (int i = 1; i <= amount; i++)
+                            if (students.Count > 0)
                             {
-                                int studentSelected = -1;
-                                Console.Clear();
-                                do
+                                for (int i = 1; i <= amount; i++)
                                 {
-                                    studentSelected = MenuInteraction(students);
-                                    if (!alreadyAddedStudents.Contains(studentRepository.GetStudentByName(students[studentSelected])))
+                                    int studentSelected = -1;
+                                    Console.Clear();
+                                    do
                                     {
-                                        alreadyAddedStudents.Add(studentRepository.GetStudentByName(students[studentSelected]));
-                                        break;
+                                        studentSelected = MenuInteraction(students);
+                                        if (!alreadyAddedStudents.Contains(studentRepository.GetStudentByName(students[studentSelected])))
+                                        {
+                                            alreadyAddedStudents.Add(studentRepository.GetStudentByName(students[studentSelected]));
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("The student already exists for this lecture! Select again...");
+                                        }
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine("The student already exists for this lecture! Select again...");
-                                    }
+                                    while (alreadyAddedStudents.Contains(studentRepository.GetStudentByName(students[studentSelected])));
+                                    newStudents.Add(studentRepository.GetStudentByName(students[studentSelected]));
                                 }
-                                while (alreadyAddedStudents.Contains(studentRepository.GetStudentByName(students[studentSelected])));
-                                newStudents.Add(studentRepository.GetStudentByName(students[studentSelected]));
                             }
                         }
 
@@ -266,9 +290,16 @@ namespace Project
                         continue;
                     case 2:
                         Console.Clear();
-                        foreach (var lecture in lectureRepository.GetAllLectures())
+                        if (lectureRepository.GetAllLectures().Count > 0)
                         {
-                            Console.WriteLine($"({lecture.Id}) {lecture.Name}");
+                            foreach (var lecture in lectureRepository.GetAllLectures())
+                            {
+                                Console.WriteLine($"({lecture.Id}) {lecture.Name}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("No lectures were found!");
                         }
                         ReturnToMainMenu();
                         continue;
@@ -317,7 +348,7 @@ namespace Project
                             }
                         }
 
-                        lectureRepository.UpdateLecture(updatedLectureName, updatedStudents);
+                        lectureRepository.UpdateLecture(lectures[lectureToEditIndex], updatedLectureName, updatedStudents);
                         continue;
                     case 4:
                         List<string> lectureNames = lectureRepository.GetAllLectures().Select(l => l.Name).ToList();
@@ -360,25 +391,28 @@ namespace Project
                         if (amount > 0)
                         {
                             List<string> lectures = lectureRepository.GetAllLectures().Select(l => l.Name).ToList();
-                            for (int i = 1; i <= amount; i++)
+                            if (lectures.Count > 0)
                             {
-                                int lectureSelected = -1;
-                                Console.Clear();
-                                do
+                                for (int i = 1; i <= amount; i++)
                                 {
-                                    lectureSelected = MenuInteraction(lectures);
-                                    if (!alreadyAddedLectures.Contains(lectureRepository.GetLectureByName(lectures[lectureSelected])))
+                                    int lectureSelected = -1;
+                                    Console.Clear();
+                                    do
                                     {
-                                        alreadyAddedLectures.Add(lectureRepository.GetLectureByName(lectures[lectureSelected]));
-                                        break;
+                                        lectureSelected = MenuInteraction(lectures);
+                                        if (!alreadyAddedLectures.Contains(lectureRepository.GetLectureByName(lectures[lectureSelected])))
+                                        {
+                                            alreadyAddedLectures.Add(lectureRepository.GetLectureByName(lectures[lectureSelected]));
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("The lecture already exists for this department! Select again...");
+                                        }
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine("The lecture already exists for this department! Select again...");
-                                    }
+                                    while (alreadyAddedLectures.Contains(lectureRepository.GetLectureByName(lectures[lectureSelected])));
+                                    newLectures.Add(lectureRepository.GetLectureByName(lectures[lectureSelected]));
                                 }
-                                while (alreadyAddedLectures.Contains(lectureRepository.GetLectureByName(lectures[lectureSelected])));
-                                newLectures.Add(lectureRepository.GetLectureByName(lectures[lectureSelected]));
                             }
                         }
                        
@@ -400,9 +434,16 @@ namespace Project
                         continue;
                     case 2:
                         Console.Clear();
-                        foreach (var department in departmentRepository.GetAllDepartments())
+                        if (departmentRepository.GetAllDepartments().Count > 0)
                         {
-                            Console.WriteLine($"({department.Id}) {department.Name}");
+                            foreach (var department in departmentRepository.GetAllDepartments())
+                            {
+                                Console.WriteLine($"({department.Id}) {department.Name}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("No departments were found!");
                         }
                         ReturnToMainMenu();
                         continue;
@@ -451,7 +492,7 @@ namespace Project
                             }
                         }
 
-                        departmentRepository.UpdateDepartment(updatedDepartmentName, updatedLectures);
+                        departmentRepository.UpdateDepartment(departments[departmentToEditIndex], updatedDepartmentName, updatedLectures);
                         continue;
                     case 4:
                         List<string> departmentNames = departmentRepository.GetAllDepartments().Select(d => d.Name).ToList();

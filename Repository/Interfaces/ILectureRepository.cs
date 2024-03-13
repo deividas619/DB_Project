@@ -12,7 +12,7 @@ namespace Project.Repository.Interfaces
         public void CreateLecture(Lecture lecture);
         public List<Lecture> GetAllLectures();
         public Lecture GetLectureByName(string Name);
-        public void UpdateLecture(string Name, List<Student> students);
+        public void UpdateLecture(string oldName, string newName, List<Student> students);
         public void DeleteLectureByName(string Name);
         public void DeleteAllLectures();
     }

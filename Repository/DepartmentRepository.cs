@@ -31,14 +31,14 @@ namespace Project.Repository
         {
             return _context.Departments.FirstOrDefault(d => d.Name == Name);
         }
-        public void UpdateDepartment(string Name, List<Lecture> lectures)
+        public void UpdateDepartment(string oldName, string newName, List<Lecture> lectures)
         {
-            var department = _context.Departments.Include(d => d.Lectures).FirstOrDefault(d => d.Name == Name);
+            var department = _context.Departments.Include(d => d.Lectures).FirstOrDefault(d => d.Name == oldName);
             if (department != null)
             {
-                department.Name = Name;
+                department.Name = newName;
 
-                if (lectures != null)
+                if (lectures.Count > 0)
                 {
                     department.Lectures.RemoveAll(l => !lectures.Any(newL => newL.Id == l.Id));
 
