@@ -4,7 +4,6 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Project.Models;
-using Dapper;
 
 namespace Project
 {
