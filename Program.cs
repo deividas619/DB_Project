@@ -44,10 +44,10 @@ namespace Project
                         DepartmentMenu(departmentRepository, lectureRepository);
                         continue;
                     case 2:
-                        LectureMenu(lectureRepository);
+                        LectureMenu(studentRepository, lectureRepository);
                         continue;
                     case 3:
-                        StudentMenu(studentRepository, lectureRepository);
+                        StudentMenu(departmentRepository, studentRepository);
                         continue;
                 }
             }
@@ -109,7 +109,7 @@ namespace Project
             }
             return option;
         }
-        public static void StudentMenu(IStudentRepository studentRepository, ILectureRepository lectureRepository)
+        public static void StudentMenu(IDepartmentRepository departmentRepository, IStudentRepository studentRepository)
         {
             do
             {
@@ -130,12 +130,18 @@ namespace Project
                     case 1:
                         Console.Write("Student name: ");
                         string newStudentName = Console.ReadLine();
+                        List<string> departmentsForStudent = departmentRepository.GetAllDepartments().Select(d => d.Name).ToList();
+                        Console.Clear();
+                        Console.Write("To which department student should be added: ");
+                        var departmentSelected = MenuInteraction(departmentsForStudent);
+
                         try
                         {
                             var newStudent = new Student
                             {
                                 Id = Guid.NewGuid(),
-                                Name = newStudentName
+                                Name = newStudentName,
+                                Department = departmentRepository.GetDepartmentByName(departmentsForStudent[departmentSelected])
                             };
                             studentRepository.CreateStudent(newStudent);
                         }
@@ -154,12 +160,30 @@ namespace Project
                         ReturnToMainMenu();
                         continue;
                     case 3:
-                        Console.Write("New student name: ");
+                        Console.Write("Select student to edit:");
+                        List<string> students = studentRepository.GetAllStudents().Select(s => s.Name).ToList();
+                        var studentToEditIndex = MenuInteraction(students);
+
+                        Console.Write("New student name (press Enter to keep the current name): ");
                         string updatedStudentName = Console.ReadLine();
-                        studentRepository.UpdateStudent(updatedStudentName);
+                        if (string.IsNullOrEmpty(updatedStudentName))
+                        {
+                            updatedStudentName = students[studentToEditIndex];
+                        }
+
+                        Console.WriteLine("Do you want to change department? (y/N)");
+                        var departmentSelection = Console.ReadLine();
+
+                        if (departmentSelection == "y" || departmentSelection == "Y")
+                        {
+                            Console.WriteLine("Select new department:");
+                            List<string> departmentList = departmentRepository.GetAllDepartments().Select(d => d.Name).ToList();
+                            var newDepartment = MenuInteraction(departmentList);
+                            studentRepository.UpdateStudent(updatedStudentName, departmentRepository.GetDepartmentByName(departmentList[newDepartment]));
+                        }
                         continue;
                     case 4:
-                        List<string> studentNames = studentRepository.GetAllStudents().Select(d => d.Name).ToList();
+                        List<string> studentNames = studentRepository.GetAllStudents().Select(s => s.Name).ToList();
                         var studentToDelete = MenuInteraction(studentNames);
                         studentRepository.DeleteStudentByName(studentNames[studentToDelete]);
                         continue;
@@ -175,7 +199,7 @@ namespace Project
             }
             while (true);
         }
-        public static void LectureMenu(ILectureRepository lectureRepository)
+        public static void LectureMenu(IStudentRepository studentRepository, ILectureRepository lectureRepository)
         {
             do
             {
@@ -195,12 +219,42 @@ namespace Project
                     case 1:
                         Console.Write("Lecture name: ");
                         string newLectureName = Console.ReadLine();
+                        Console.Write("How many students: ");
+                        int.TryParse(Console.ReadLine(), out int amount);
+                        List<Student> newStudents = new List<Student>();
+                        List<Student> alreadyAddedStudents = new List<Student>();
+                        if (amount > 0)
+                        {
+                            List<string> students = studentRepository.GetAllStudents().Select(l => l.Name).ToList();
+                            for (int i = 1; i <= amount; i++)
+                            {
+                                int studentSelected = -1;
+                                Console.Clear();
+                                do
+                                {
+                                    studentSelected = MenuInteraction(students);
+                                    if (!alreadyAddedStudents.Contains(studentRepository.GetStudentByName(students[studentSelected])))
+                                    {
+                                        alreadyAddedStudents.Add(studentRepository.GetStudentByName(students[studentSelected]));
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("The student already exists for this lecture! Select again...");
+                                    }
+                                }
+                                while (alreadyAddedStudents.Contains(studentRepository.GetStudentByName(students[studentSelected])));
+                                newStudents.Add(studentRepository.GetStudentByName(students[studentSelected]));
+                            }
+                        }
+
                         try
                         {
                             var newLecture = new Lecture
                             {
                                 Id = Guid.NewGuid(),
-                                Name = newLectureName
+                                Name = newLectureName,
+                                Students = newStudents
                             };
                             lectureRepository.CreateLecture(newLecture);
                         }
@@ -219,9 +273,51 @@ namespace Project
                         ReturnToMainMenu();
                         continue;
                     case 3:
-                        Console.Write("New lecture name: ");
+                        Console.Write("Select lecture to edit:");
+                        List<string> lectures = lectureRepository.GetAllLectures().Select(l => l.Name).ToList();
+                        var lectureToEditIndex = MenuInteraction(lectures);
+
+                        Console.Write("New lecture name (press Enter to keep the current name): ");
                         string updatedLectureName = Console.ReadLine();
-                        lectureRepository.UpdateLecture(updatedLectureName);
+                        if (string.IsNullOrEmpty(updatedLectureName))
+                        {
+                            updatedLectureName = lectures[lectureToEditIndex];
+                        }
+
+                        Console.WriteLine("Do you want to add or remove students? (1. Add, 2. Remove, 3. Both, 4. None)");
+                        int.TryParse(Console.ReadLine(), out int action);
+
+                        List<Student> updatedStudents = new List<Student>();
+
+                        if (action == 1 || action == 3)
+                        {
+                            Console.Write("How many students to add: ");
+                            int.TryParse(Console.ReadLine(), out int amountToAdd);
+
+                            Console.WriteLine("Select students to add:");
+                            List<string> studentsToAdd = studentRepository.GetAllStudents().Select(s => s.Name).ToList();
+                            for (int i = 0; i < amountToAdd; i++)
+                            {
+                                var studentToAdd = MenuInteraction(studentsToAdd);
+                                updatedStudents.Add(studentRepository.GetStudentByName(studentsToAdd[studentToAdd]));
+                            }
+                        }
+
+                        if (action == 2 || action == 3)
+                        {
+                            Console.Write("How many students to remove: ");
+                            int.TryParse(Console.ReadLine(), out int amountToRemove);
+
+                            Console.WriteLine("Select students to remove:");
+                            List<string> studentsToRemove = studentRepository.GetAllStudents().Select(s => s.Name).ToList();
+                            for (int i = 0; i < amountToRemove; i++)
+                            {
+                                var studentToRemove = MenuInteraction(studentsToRemove);
+                                updatedStudents.RemoveAll(s => s.Name == studentsToRemove[studentToRemove]);
+                            }
+                        }
+
+                        lectureRepository.UpdateLecture(updatedLectureName, updatedStudents);
                         continue;
                     case 4:
                         List<string> lectureNames = lectureRepository.GetAllLectures().Select(l => l.Name).ToList();
@@ -311,9 +407,51 @@ namespace Project
                         ReturnToMainMenu();
                         continue;
                     case 3:
-                        Console.Write("New department name: ");
+                        Console.Write("Select department to edit:");
+                        List<string> departments = departmentRepository.GetAllDepartments().Select(d => d.Name).ToList();
+                        var departmentToEditIndex = MenuInteraction(departments);
+
+                        Console.Write("New department name (press Enter to keep the current name): ");
                         string updatedDepartmentName = Console.ReadLine();
-                        departmentRepository.UpdateDepartment(updatedDepartmentName);
+                        if (string.IsNullOrEmpty(updatedDepartmentName))
+                        {
+                            updatedDepartmentName = departments[departmentToEditIndex];
+                        }
+
+                        Console.WriteLine("Do you want to add or remove lectures? (1. Add, 2. Remove, 3. Both, 4. None)");
+                        int.TryParse(Console.ReadLine(), out int action);
+
+                        List<Lecture> updatedLectures = new List<Lecture>();
+
+                        if (action == 1 || action == 3)
+                        {
+                            Console.Write("How many lectures to add: ");
+                            int.TryParse(Console.ReadLine(), out int amountToAdd);
+
+                            Console.WriteLine("Select lectures to add:");
+                            List<string> lecturesToAdd = lectureRepository.GetAllLectures().Select(l => l.Name).ToList();
+                            for (int i = 0; i < amountToAdd; i++)
+                            {
+                                var lectureToAdd = MenuInteraction(lecturesToAdd);
+                                updatedLectures.Add(lectureRepository.GetLectureByName(lecturesToAdd[lectureToAdd]));
+                            }
+                        }
+
+                        if (action == 2 || action == 3)
+                        {
+                            Console.Write("How many lectures to remove: ");
+                            int.TryParse(Console.ReadLine(), out int amountToRemove);
+
+                            Console.WriteLine("Select lectures to remove:");
+                            List<string> lecturesToRemove = departmentRepository.GetLecturesInDepartment(departments[departmentToEditIndex]).Select(l => l.Name).ToList();
+                            for (int i = 0; i < amountToRemove; i++)
+                            {
+                                var lectureToRemove = MenuInteraction(lecturesToRemove);
+                                updatedLectures.RemoveAll(l => l.Name == lecturesToRemove[lectureToRemove]);
+                            }
+                        }
+
+                        departmentRepository.UpdateDepartment(updatedDepartmentName, updatedLectures);
                         continue;
                     case 4:
                         List<string> departmentNames = departmentRepository.GetAllDepartments().Select(d => d.Name).ToList();

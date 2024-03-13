@@ -31,12 +31,26 @@ namespace Project.Repository
         {
             return _context.Lectures.FirstOrDefault(l => l.Name == Name);
         }
-        public void UpdateLecture(string Name)
+        public void UpdateLecture(string Name, List<Student> students)
         {
-            var lecture = _context.Lectures.FirstOrDefault(l => l.Name == Name);
+            var lecture = _context.Lectures.Include(l => l.Students).FirstOrDefault(l => l.Name == Name);
             if (lecture != null)
             {
                 lecture.Name = Name;
+
+                if (students != null)
+                {
+                    lecture.Students.RemoveAll(s => !students.Any(newS => newS.Id == s.Id));
+
+                    foreach (var newStudent in students)
+                    {
+                        if (!lecture.Students.Any(l => l.Id == newStudent.Id))
+                        {
+                            lecture.Students.Add(newStudent);
+                        }
+                    }
+                }
+
                 _context.SaveChanges();
             }
         }

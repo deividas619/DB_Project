@@ -11,7 +11,8 @@ namespace Project.Repository.Interfaces
     {
         public void CreateStudent(Student student);
         public List<Student> GetAllStudents();
-        public void UpdateStudent(string Name);
+        public Student GetStudentByName(string Name);
+        public void UpdateStudent(string Name, Department department);
         public void DeleteStudentByName(string Name);
         public void DeleteAllStudents();
         public IEnumerable<Lecture> DisplayLecturesForStudent(string Name);

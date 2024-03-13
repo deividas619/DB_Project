@@ -27,16 +27,30 @@ namespace Project.Repository
         {
             return _context.Departments.ToList();
         }
-        /*public Department GetDepartmentByName(string Name)
+        public Department GetDepartmentByName(string Name)
         {
             return _context.Departments.FirstOrDefault(d => d.Name == Name);
-        }*/
-        public void UpdateDepartment(string Name)
+        }
+        public void UpdateDepartment(string Name, List<Lecture> lectures)
         {
-            var department = _context.Departments.FirstOrDefault(d => d.Name == Name);
+            var department = _context.Departments.Include(d => d.Lectures).FirstOrDefault(d => d.Name == Name);
             if (department != null)
             {
                 department.Name = Name;
+
+                if (lectures != null)
+                {
+                    department.Lectures.RemoveAll(l => !lectures.Any(newL => newL.Id == l.Id));
+
+                    foreach (var newLecture in lectures)
+                    {
+                        if (!department.Lectures.Any(l => l.Id == newLecture.Id))
+                        {
+                            department.Lectures.Add(newLecture);
+                        }
+                    }
+                }
+
                 _context.SaveChanges();
             }
         }

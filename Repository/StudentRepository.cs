@@ -28,16 +28,22 @@ namespace Project.Repository
         {
             return _context.Students.ToList();
         }
-        /*public Student GetStudentByName(string Name)
+        public Student GetStudentByName(string Name)
         {
             return _context.Students.FirstOrDefault(s => s.Name == Name);
-        }*/
-        public void UpdateStudent(string Name)
+        }
+        public void UpdateStudent(string Name, Department department)
         {
-            var student = _context.Students.FirstOrDefault(s => s.Name == Name);
+            var student = _context.Students.Include(s => s.Department).FirstOrDefault(s => s.Name == Name);
             if (student != null)
             {
                 student.Name = Name;
+
+                if (department != null)
+                {
+                    student.Department = department;
+                }
+
                 _context.SaveChanges();
             }
         }
@@ -59,13 +65,17 @@ namespace Project.Repository
         {
             var student = _context.Students.Include(s => s.Lectures).FirstOrDefault(s => s.Name == StudentName);
 
-            if (student != null)
+            if (student != null && student.Lectures.Count > 0)
             {
                 return student.Lectures;
             }
-            else
+            else if (student != null && student.Lectures.Count == 0)
             {
                 Console.WriteLine("No lectures found!");
+                return Enumerable.Empty<Lecture>();
+            }
+            else
+            {
                 return Enumerable.Empty<Lecture>();
             }
         }

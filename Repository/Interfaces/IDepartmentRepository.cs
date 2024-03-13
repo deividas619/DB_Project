@@ -11,7 +11,8 @@ namespace Project.Repository.Interfaces
     {
         public void CreateDepartment(Department department);
         public List<Department> GetAllDepartments();
-        public void UpdateDepartment(string Name);
+        public Department GetDepartmentByName(string Name);
+        public void UpdateDepartment(string Name, List<Lecture> lectures);
         public void DeleteDepartmentByName(string Name);
         public void DeleteAllDepartments();
         public IEnumerable<Student> GetStudentsInDepartment(string DepartmentName);
